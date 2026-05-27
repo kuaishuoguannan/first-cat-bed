@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>番茄滚落效果 - FocusPomo</title>
+      <style>
+          * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+              font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+          }
+
+          :root {
+              --warm-cream: #FFF9F0;
+              --dark-cream: #F5E9D6;
+              --warm-orange: #FF8C42;
+              --light-orange: #FFB347;
+              --olive-green: #7B904B;
+              --light-green: #9ABD6B;
+              --cream-white: #FFFDF8;
+              --text-dark: #5A5343;
+              --text-light: #8A826E;
+              --shadow-color: rgba(255, 140, 66, 0.15);
+              --dark-bg: #2A2620;
+              --dark-surface: #3A362F;
+          }
+
+          body {
+              background-color: var(--warm-cream);
+              color: var(--text-dark);
+              min-height: 100vh;
+              transition: background-color 0.5s ease;
+              overflow-x: hidden;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 20px;
+          }
+
+          body.dark-mode {
+              background-color: var(--dark-bg);
+              color: #E0D8C8;
+          }
+
+          /* 番茄容器 - 用于滚落效果 */
+          .tomato-container {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 10;
+              overflow: hidden;
+          }
+
+          .tomato {
+              position: absolute;
+              pointer-events: none;
+              z-index: 10;
+              transition: transform 0.1s linear;
+          }
+
+          .tomato-body {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+              background: linear-gradient(135deg, var(--warm-orange), var(--light-orange));
+              box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.1),
+                          inset 5px 5px 10px rgba(255, 255, 255, 0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+          }
+
+          .tomato-face {
+              position: absolute;
+              width: 40%;
+              height: 40%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+          }
+
+          .tomato-eyes {
+              display: flex;
+              gap: 15%;
+              width: 100%;
+              justify-content: center;
+          }
+
+          .tomato-eye {
+              width: 20%;
+              height: 20%;
+              background-color: var(--text-dark);
+              border-radius: 50%;
+          }
+
+          .tomato-smile {
+              position: absolute;
+              width: 40%;
+              height: 15%;
+              border-bottom: 4px solid var(--text-dark);
+              border-radius: 0 0 50% 50%;
+              bottom: 15%;
+          }
+
+          .tomato-stem {
+              position: absolute;
+              top: -15%;
+              width: 25%;
+              height: 25%;
+              background-color: var(--olive-green);
+              border-radius: 50% 50% 0 0;
+              transform: rotate(180deg);
+          }
+
+          .tomato-leaf {
+              position: absolute;
+              width: 20%;
+              height: 15%;
+              background-color: var(--light-green);
+              border-radius: 50% 0 50% 50%;
+              top: -12%;
+              left: 15%;
+              transform: rotate(-45deg);
+          }
+
+          .tomato-leaf:nth-child(2) {
+              left: auto;
+              right: 15%;
+              border-radius: 0 50% 50% 50%;
+              transform: rotate(45deg);
+          }
+
+          /* 控制面板 */
+          .control-panel {
+              background: var(--cream-white);
+              border-radius: 20px;
+              padding: 30px;
+              margin-top: 30px;
+              width: 100%;
+              max-width: 700px;
+              box-shadow: 0 10px 30px var(--shadow-color);
+              text-align: center;
+              z-index: 20;
+              position: relative;
+          }
+
+          body.dark-mode .control-panel {
+              background: var(--dark-surface);
+          }
+
+          h1 {
+              color: var(--warm-orange);
+              margin-bottom: 10px;
+              font-size: 2.5rem;
+          }
+
+          .description {
+              color: var(--text-light);
+              margin-bottom: 30px;
+              font-size: 1.1rem;
+              line-height: 1.5;
+          }
+
+          /* 按钮样式 */
+          .buttons {
+              display: flex;
+              gap: 15px;
+              justify-content: center;
+              margin-bottom: 25px;
+              flex-wrap: wrap;
+          }
+
+          .btn {
+              padding: 15px 30px;
+              border: none;
+              border-radius: 15px;
+              font-size: 1.1rem;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+          }
+
+          .btn-primary {
+              background: linear-gradient(135deg, var(--warm-orange), var(--light-orange));
+              color: white;
+              box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+          }
+
+          .btn-secondary {
+              background: var(--dark-cream);
+              color: var(--text-dark);
+          }
+
+          body.dark-mode .btn-secondary {
+              background: #4A453D;
+              color: #E0D8C8;
+          }
+
+          .btn:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 12px 25px rgba(255, 140, 66, 0.4);
+          }
+
+          .btn:active {
+              transform: translateY(-1px);
+          }
+
+          /* 番茄堆区域 */
+          .tomato-pile {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 120px;
+              background: linear-gradient(to top, rgba(255, 249, 240, 0.9), rgba(255, 249, 240, 0.1));
+              pointer-events: none;
+              z-index: 15;
+              transition: background 0.5s ease;
+              border-radius: 0 0 20px 20px;
+          }
+
+          body.dark-mode .tomato-pile {
+              background: linear-gradient(to top, rgba(42, 38, 32, 0.9), rgba(42, 38, 32, 0.1));
+          }
+
+          /* 计数器 */
+          .counter {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 20px;
+              padding-top: 20px;
+              border-top: 2px solid var(--dark-cream);
+          }
+
+          body.dark-mode .counter {
+              border-top-color: #4A453D;
+          }
+
+          .counter-item {
+              text-align: center;
+          }
+
+          .counter-label {
+              font-size: 1rem;
+              color: var(--text-light);
+              margin-bottom: 5px;
+          }
+
+          .counter-value {
+              font-size: 2rem;
+              font-weight: 700;
+              color: var(--warm-orange);
+          }
+
+          /* 设置面板 */
+          .settings {
+              margin-top: 20px;
+              padding-top: 20px;
+              border-top: 2px solid var(--dark-cream);
+              text-align: left;
+          }
+
+          body.dark-mode .settings {
+              border-top-color: #4A453D;
+          }
+
+          .setting-item {
+              margin-bottom: 15px;
+          }
+
+          label {
+              display: block;
+              margin-bottom: 8px;
+              color: var(--text-light);
+              font-weight: 600;
+          }
+
+          input[type="range"] {
+              width: 100%;
+              height: 10px;
+              background: var(--dark-cream);
+              border-radius: 5px;
+              outline: none;
+          }
+
+          body.dark-mode input[type="range"] {
+              background: #4A453D;
+          }
+
+          input[type="range"]::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              width: 25px;
+              height: 25px;
+              border-radius: 50%;
+              background: var(--warm-orange);
+              cursor: pointer;
+          }
+
+          /* 演示区域 */
+          .demo-area {
+              width: 100%;
+              max-width: 700px;
+              height: 500px;
+              background: var(--cream-white);
+              border-radius: 20px;
+              margin-top: 30px;
+              overflow: hidden;
+              position: relative;
+              box-shadow: 0 10px 30px var(--shadow-color);
+          }
+
+          body.dark-mode .demo-area {
+              background: var(--dark-surface);
+          }
+
+          .demo-title {
+              position: absolute;
+              top: 20px;
+              left: 20px;
+              font-size: 1.2rem;
+              color: var(--text-light);
+              z-index: 5;
+          }
+
+          /* 动画类 */
+          @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-20px); }
+          }
+
+          @keyframes pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.05); }
+          }
+
+          .pulse {
+              animation: pulse 2s infinite;
+          }
+
+          /* 响应式设计 */
+          @media (max-width: 768px) {
+              .control-panel {
+                  padding: 20px;
+              }
+
+              h1 {
+                  font-size: 2rem;
+              }
+
+              .buttons {
+                  flex-direction: column;
+              }
+
+              .btn {
+                  width: 100%;
+                  justify-content: center;
+              }
+
+              .demo-area {
+                  height: 400px;
+              }
+
+              .counter {
+                  flex-direction: column;
+                  gap: 15px;
+              }
+
+              .counter-item {
+                  width: 100%;
+              }
+          }
+      </style>
+  </head>
+  <body>
+      <!-- 番茄容器 -->
+      <div class="tomato-container" id="tomatoContainer"></div>
+
+      <!-- 演示区域 -->
+      <div class="demo-area">
+          <div class="tomato-pile"></div>
+          <div class="demo-title">番茄滚落效果演示区域</div>
+      </div>
+
+      <!-- 控制面板 -->
+      <div class="control-panel">
+          <h1>🍅 番茄滚落效果演示</h1>
+          <p class="description">
+              点击"开始滚落番茄"按钮，可爱的番茄会从屏幕顶部随机滚落，堆积在底部形成番茄堆。<br>
+              每个番茄都有随机的大小、角度和速度，滚动时有重力、碰撞和反弹效果。
+          </p>
+
+          <div class="buttons">
+              <button class="btn btn-primary pulse" id="startBtn">
+                  <i class="fas fa-play-circle"></i> 开始滚落番茄
+              </button>
+              <button class="btn btn-secondary" id="stopBtn">
+                  <i class="fas fa-stop-circle"></i> 停止滚落
+              </button>
+              <button class="btn btn-secondary" id="clearBtn">
+                  <i class="fas fa-trash"></i> 清除所有番茄
+              </button>
+              <button class="btn btn-secondary" id="themeBtn">
+                  <i class="fas fa-moon"></i> 切换深色模式
+              </button>
+          </div>
+
+          <div class="counter">
+              <div class="counter-item">
+                  <div class="counter-label">滚落中番茄</div>
+                  <div class="counter-value" id="rollingCount">0</div>
+              </div>
+              <div class="counter-item">
+                  <div class="counter-label">堆积番茄</div>
+                  <div class="counter-value" id="piledCount">0</div>
+              </div>
+              <div class="counter-item">
+                  <div class="counter-label">总番茄数</div>
+                  <div class="counter-value" id="totalCount">0</div>
+              </div>
+          </div>
+
+          <div class="settings">
+              <div class="setting-item">
+                  <label for="tomatoSpeed">番茄速度: <span id="speedValue">中等</span></label>
+                  <input type="range" id="tomatoSpeed" min="1" max="5" value="3">
+              </div>
+              <div class="setting-item">
+                  <label for="tomatoSize">番茄大小: <span id="sizeValue">中等</span></label>
+                  <input type="range" id="tomatoSize" min="1" max="5" value="3">
+              </div>
+              <div class="setting-item">
+                  <label for="tomatoFrequency">番茄频率: <span id="frequencyValue">中等</span></label>
+                  <input type="range" id="tomatoFrequency" min="1" max="5" value="3">
+              </div>
+          </div>
+      </div>
+
+      <!-- Font Awesome图标 -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+      <script>
+          // 应用状态管理
+          const TomatoState = {
+              isRaining: false,
+              rollingTomatoes: [],
+              piledTomatoes: [],
+              rainInterval: null,
+              updateInterval: null,
+              settings: {
+                  speed: 3,     // 1-5
+                  size: 3,      // 1-5
+                  frequency: 3  // 1-5
+              },
+              demoArea: null
+          };
+
+          // DOM元素引用
+          const elements = {
+              body: document.body,
+              tomatoContainer: document.getElementById('tomatoContainer'),
+              startBtn: document.getElementById('startBtn'),
+              stopBtn: document.getElementById('stopBtn'),
+              clearBtn: document.getElementById('clearBtn'),
+              themeBtn: document.getElementById('themeBtn'),
+              rollingCount: document.getElementById('rollingCount'),
+              piledCount: document.getElementById('piledCount'),
+              totalCount: document.getElementById('totalCount'),
+              tomatoSpeed: document.getElementById('tomatoSpeed'),
+              tomatoSize: document.getElementById('tomatoSize'),
+              tomatoFrequency: document.getElementById('tomatoFrequency'),
+              speedValue: document.getElementById('speedValue'),
+              sizeValue: document.getElementById('sizeValue'),
+              frequencyValue: document.getElementById('frequencyValue')
+          };
+
+          // 初始化应用
+          function initApp() {
+              // 获取演示区域
+              TomatoState.demoArea = document.querySelector('.demo-area');
+
+              // 初始化事件监听器
+              initEventListeners();
+
+              // 初始化设置滑块
+              initSettings();
+
+              // 创建一些初始番茄
+              createInitialTomatoes();
+
+              // 开始更新循环
+              startUpdateLoop();
+
+              // 更新计数器显示
+              updateCounters();
+          }
+
+          // 初始化事件监听器
+          function initEventListeners() {
+              // 开始按钮
+              elements.startBtn.addEventListener('click', startTomatoRain);
+
+              // 停止按钮
+              elements.stopBtn.addEventListener('click', stopTomatoRain);
+
+              // 清除按钮
+              elements.clearBtn.addEventListener('click', clearAllTomatoes);
+
+              // 主题切换按钮
+              elements.themeBtn.addEventListener('click', toggleTheme);
+
+              // 设置滑块
+              elements.tomatoSpeed.addEventListener('input', updateSpeed);
+              elements.tomatoSize.addEventListener('input', updateSize);
+              elements.tomatoFrequency.addEventListener('input', updateFrequency);
+
+              // 窗口大小调整时重新定位番茄
+              window.addEventListener('resize', repositionTomatoes);
+          }
+
+          // 初始化设置滑块
+          function initSettings() {
+              // 设置初始值显示
+              updateSpeed();
+              updateSize();
+              updateFrequency();
+          }
+
+          // 创建初始番茄
+          function createInitialTomatoes() {
+              // 在底部创建一些静止番茄
+              for (let i = 0; i < 3; i++) {
+                  createPiledTomato();
+              }
+          }
+
+          // 开始番茄雨
+          function startTomatoRain() {
+              if (TomatoState.isRaining) return;
+
+              TomatoState.isRaining = true;
+              elements.startBtn.innerHTML = '<i class="fas fa-pause-circle"></i> 滚落中...';
+              elements.startBtn.classList.remove('pulse');
+
+              // 根据频率设置番茄雨的间隔
+              const intervalMap = {1: 2000, 2: 1500, 3: 800, 4: 400, 5: 200};
+              const interval = intervalMap[TomatoState.settings.frequency] || 800;
+
+              TomatoState.rainInterval = setInterval(() => {
+                  if (!TomatoState.isRaining) return;
+
+                  // 随机创建1-3个番茄
+                  const tomatoCount = 1 + Math.floor(Math.random() * 3);
+                  for (let i = 0; i < tomatoCount; i++) {
+                      createRollingTomato();
+                  }
+
+                  // 更新计数器
+                  updateCounters();
+              }, interval);
+          }
+
+          // 停止番茄雨
+          function stopTomatoRain() {
+              TomatoState.isRaining = false;
+              elements.startBtn.innerHTML = '<i class="fas fa-play-circle"></i> 开始滚落番茄';
+              elements.startBtn.classList.add('pulse');
+
+              if (TomatoState.rainInterval) {
+                  clearInterval(TomatoState.rainInterval);
+                  TomatoState.rainInterval = null;
+              }
+          }
+
+          // 创建滚动番茄
+          function createRollingTomato() {
+              const tomato = createTomatoElement();
+              elements.tomatoContainer.appendChild(tomato);
+
+              // 根据设置计算大小
+              const sizeMap = {1: 20, 2: 35, 3: 50, 4: 65, 5: 80};
+              const baseSize = sizeMap[TomatoState.settings.size] || 50;
+              const size = baseSize + Math.random() * 20;
+
+              const tomatoData = {
+                  element: tomato,
+                  x: Math.random() * (window.innerWidth - size),
+                  y: -size,
+                  size: size,
+                  rotation: Math.random() * 360,
+                  rotationSpeed: (Math.random() - 0.5) * 10,
+                  speedX: (Math.random() - 0.5) * 4,
+                  speedY: getSpeedValue(),
+                  gravity: 0.2,
+                  isOnGround: false,
+                  bounce: 0.6 + Math.random() * 0.2,
+                  friction: 0.93 + Math.random() * 0.04,
+                  piled: false
+              };
+
+              TomatoState.rollingTomatoes.push(tomatoData);
+              return tomatoData;
+          }
+
+          // 创建堆积番茄
+          function createPiledTomato() {
+              const tomato = createTomatoElement();
+
+              // 随机大小
+              const size = 30 + Math.random() * 50;
+              tomato.style.width = `${size}px`;
+              tomato.style.height = `${size}px`;
+
+              // 随机位置在演示区域底部
+              const demoRect = TomatoState.demoArea.getBoundingClientRect();
+              const groundLevel = demoRect.bottom - 120;
+              const maxX = demoRect.width - size;
+              const x = demoRect.left + Math.random() * maxX;
+
+              const tomatoData = {
+                  element: tomato,
+                  x: x,
+                  y: groundLevel - size,
+                  size: size,
+                  rotation: Math.random() * 360,
+                  rotationSpeed: 0,
+                  speedX: 0,
+                  speedY: 0,
+                  gravity: 0,
+                  isOnGround: true,
+                  bounce: 0,
+                  friction: 1,
+                  piled: true
+              };
+
+              tomato.style.transform = `translate(${tomatoData.x}px, ${tomatoData.y}px) rotate(${tomatoData.rotation}deg)`;
+              tomato.style.opacity = 0.9;
+
+              elements.tomatoContainer.appendChild(tomato);
+              TomatoState.piledTomatoes.push(tomatoData);
+
+              return tomatoData;
+          }
+
+          // 创建番茄元素
+          function createTomatoElement() {
+              const tomato = document.createElement('div');
+              tomato.className = 'tomato';
+
+              const html = `
+                  <div class="tomato-body">
+                      <div class="tomato-stem"></div>
+                      <div class="tomato-leaf"></div>
+                      <div class="tomato-leaf"></div>
+                      <div class="tomato-face">
+                          <div class="tomato-eyes">
+                              <div class="tomato-eye"></div>
+                              <div class="tomato-eye"></div>
+                          </div>
+                          <div class="tomato-smile"></div>
+                      </div>
+                  </div>
+              `;
+
+              tomato.innerHTML = html;
+              return tomato;
+          }
+
+          // 开始更新循环
+          function startUpdateLoop() {
+              TomatoState.updateInterval = setInterval(updateTomatoes, 16); // 约60fps
+          }
+
+          // 更新番茄状态
+          function updateTomatoes() {
+              const demoRect = TomatoState.demoArea.getBoundingClientRect();
+              const groundLevel = demoRect.bottom - 120;
+              const piledTomatoes = [];
+
+              // 更新滚动番茄
+              for (let i = TomatoState.rollingTomatoes.length - 1; i >= 0; i--) {
+                  const tomato = TomatoState.rollingTomatoes[i];
+
+                  if (tomato.piled) {
+                      piledTomatoes.push(tomato);
+                      TomatoState.rollingTomatoes.splice(i, 1);
+                      continue;
+                  }
+
+                  // 应用重力
+                  if (!tomato.isOnGround) {
+                      tomato.speedY += tomato.gravity;
+                  }
+
+                  // 更新位置
+                  tomato.x += tomato.speedX;
+                  tomato.y += tomato.speedY;
+
+                  // 应用旋转
+                  tomato.rotation += tomato.rotationSpeed;
+
+                  // 检查是否到达地面
+                  if (tomato.y + tomato.size >= groundLevel) {
+                      tomato.y = groundLevel - tomato.size;
+                      tomato.isOnGround = true;
+
+                      // 反弹
+                      tomato.speedY = -tomato.speedY * tomato.bounce;
+                      tomato.speedX *= tomato.friction;
+
+                      // 如果速度很小，则停止并加入番茄堆
+                      if (Math.abs(tomato.speedY) < 0.5 && Math.abs(tomato.speedX) < 0.5) {
+                          tomato.piled = true;
+                          tomato.speedY = 0;
+                          tomato.speedX = 0;
+                          piledTomatoes.push(tomato);
+                          TomatoState.rollingTomatoes.splice(i, 1);
+                          continue;
+                      }
+                  }
+
+                  // 检查左右边界碰撞
+                  if (tomato.x <= demoRect.left || tomato.x + tomato.size >= demoRect.right) {
+                      tomato.speedX = -tomato.speedX * tomato.bounce;
+                      tomato.x = Math.max(demoRect.left, Math.min(tomato.x, demoRect.right - tomato.size));
+                  }
+
+                  // 应用位置和旋转
+                  tomato.element.style.width = `${tomato.size}px`;
+                  tomato.element.style.height = `${tomato.size}px`;
+                  tomato.element.style.transform = `translate(${tomato.x}px, ${tomato.y}px) rotate(${tomato.rotation}deg)`;
+                  tomato.element.style.opacity = tomato.isOnGround ? 0.9 : 1;
+              }
+
+              // 将停下的番茄加入番茄堆
+              if (piledTomatoes.length > 0) {
+                  TomatoState.piledTomatoes.push(...piledTomatoes);
+                  updateTomatoPile();
+              }
+
+              // 限制番茄总数
+              if (TomatoState.rollingTomatoes.length > 50) {
+                  const removed = TomatoState.rollingTomatoes.splice(0, 10);
+                  removed.forEach(t => t.element.remove());
+              }
+
+              // 更新计数器
+              updateCounters();
+          }
+
+          // 更新番茄堆布局
+          function updateTomatoPile() {
+              const demoRect = TomatoState.demoArea.getBoundingClientRect();
+              const groundLevel = demoRect.bottom - 120;
+
+              // 按大小排序，大的番茄在下面
+              TomatoState.piledTomatoes.sort((a, b) => b.size - a.size);
+
+              let currentX = demoRect.left + 20;
+              let currentY = groundLevel;
+              let rowHeight = 0;
+
+              for (const tomato of TomatoState.piledTomatoes) {
+                  if (currentX + tomato.size > demoRect.right - 20) {
+                      currentX = demoRect.left + 20;
+                      currentY -= rowHeight;
+                      rowHeight = 0;
+                  }
+
+                  tomato.element.style.transform = `translate(${currentX}px, ${currentY - tomato.size}px) rotate(${tomato.rotation}deg)`;
+                  tomato.x = currentX;
+                  tomato.y = currentY - tomato.size;
+
+                  currentX += tomato.size * 0.8;
+                  rowHeight = Math.max(rowHeight, tomato.size);
+              }
+          }
+
+          // 清除所有番茄
+          function clearAllTomatoes() {
+              // 停止番茄雨
+              stopTomatoRain();
+
+              // 移除所有番茄
+              TomatoState.rollingTomatoes.forEach(t => t.element.remove());
+              TomatoState.piledTomatoes.forEach(t => t.element.remove());
+              TomatoState.rollingTomatoes = [];
+              TomatoState.piledTomatoes = [];
+
+              // 清空容器
+              elements.tomatoContainer.innerHTML = '';
+
+              // 创建一些新的起始番茄
+              createInitialTomatoes();
+
+              // 更新计数器
+              updateCounters();
+          }
+
+          // 重新定位番茄（窗口大小变化时）
+          function repositionTomatoes() {
+              // 清除并重新创建番茄堆
+              const piledTomatoes = [...TomatoState.piledTomatoes];
+              TomatoState.piledTomatoes = [];
+
+              piledTomatoes.forEach(t => {
+                  t.element.remove();
+                  createPiledTomato();
+              });
+
+              // 更新番茄堆布局
+              updateTomatoPile();
+          }
+
+          // 更新计数器显示
+          function updateCounters() {
+              elements.rollingCount.textContent = TomatoState.rollingTomatoes.length;
+              elements.piledCount.textContent = TomatoState.piledTomatoes.length;
+              elements.totalCount.textContent = TomatoState.rollingTomatoes.length + TomatoState.piledTomatoes.length;
+          }
+
+          // 切换主题
+          function toggleTheme() {
+              const isDark = elements.body.classList.toggle('dark-mode');
+              const icon = elements.themeBtn.querySelector('i');
+              const themeBtnText = elements.themeBtn.querySelector('span') || (() => {
+                  const span = document.createElement('span');
+                  icon.after(span);
+                  return span;
+              })();
+
+              if (isDark) {
+                  icon.className = 'fas fa-sun';
+                  themeBtnText.textContent = ' 切换浅色模式';
+              } else {
+                  icon.className = 'fas fa-moon';
+                  themeBtnText.textContent = ' 切换深色模式';
+              }
+          }
+
+          // 获取速度值
+          function getSpeedValue() {
+              const speedMap = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5};
+              return speedMap[TomatoState.settings.speed] || 3;
+          }
+
+          // 更新速度设置
+          function updateSpeed() {
+              TomatoState.settings.speed = parseInt(elements.tomatoSpeed.value);
+              const labels = ['很慢', '较慢', '中等', '较快', '很快'];
+              elements.speedValue.textContent = labels[TomatoState.settings.speed - 1];
+          }
+
+          // 更新大小设置
+          function updateSize() {
+              TomatoState.settings.size = parseInt(elements.tomatoSize.value);
+              const labels = ['很小', '较小', '中等', '较大', '很大'];
+              elements.sizeValue.textContent = labels[TomatoState.settings.size - 1];
+          }
+
+          // 更新频率设置
+          function updateFrequency() {
+              TomatoState.settings.frequency = parseInt(elements.tomatoFrequency.value);
+              const labels = ['很慢', '较慢', '中等', '较快', '很快'];
+              elements.frequencyValue.textContent = labels[TomatoState.settings.frequency - 1];
+
+              // 如果正在下雨，重新设置间隔
+              if (TomatoState.isRaining) {
+                  stopTomatoRain();
+                  setTimeout(startTomatoRain, 100);
+              }
+          }
+
+          // 页面加载完成后初始化应用
+          document.addEventListener('DOMContentLoaded', initApp);
+      </script>
+  </body>
+  </html>

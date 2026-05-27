@@ -1,0 +1,30 @@
+{
+  "name": "light",
+  "display_name": "浅色主题",
+  "colors": {
+    "primary": "#3498db",
+    "secondary": "#2ecc71",
+    "accent": "#9b59b6",
+    "background": "#f8f9fa",
+    "surface": "#ffffff",
+    "text_primary": "#2c3e50",
+    "text_secondary": "#7f8c8d",
+    "error": "#e74c3c",
+    "warning": "#f39c12",
+    "success": "#2ecc71",
+    "border": "#e0e0e0"
+  },
+  "fonts": {
+    "family": "Arial, sans-serif",
+    "title_size": "24px",
+    "time_size": "64px",
+    "button_size": "14px",
+    "small_size": "12px"
+  },
+  "border_radius": "8px",
+  "shadows": {
+    "small": "0 2px 4px rgba(0,0,0,0.1)",
+    "medium": "0 5px 15px rgba(0,0,0,0.1)",
+    "large": "0 10px 30px rgba(0,0,0,0.1)"
+  }
+}

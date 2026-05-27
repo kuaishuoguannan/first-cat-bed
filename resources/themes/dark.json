@@ -1,0 +1,30 @@
+{
+  "name": "dark",
+  "display_name": "深色主题",
+  "colors": {
+    "primary": "#3498db",
+    "secondary": "#2ecc71",
+    "accent": "#9b59b6",
+    "background": "#121212",
+    "surface": "#1e1e1e",
+    "text_primary": "#ffffff",
+    "text_secondary": "#aaaaaa",
+    "error": "#ff5252",
+    "warning": "#ffb142",
+    "success": "#4cd964",
+    "border": "#333333"
+  },
+  "fonts": {
+    "family": "Arial, sans-serif",
+    "title_size": "24px",
+    "time_size": "64px",
+    "button_size": "14px",
+    "small_size": "12px"
+  },
+  "border_radius": "8px",
+  "shadows": {
+    "small": "0 2px 4px rgba(0,0,0,0.3)",
+    "medium": "0 5px 15px rgba(0,0,0,0.3)",
+    "large": "0 10px 30px rgba(0,0,0,0.3)"
+  }
+}

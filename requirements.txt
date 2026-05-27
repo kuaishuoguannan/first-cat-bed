@@ -1,0 +1,33 @@
+# 主要依赖
+PyQt6>=6.6.0
+pyqt6-tools>=6.6.0
+
+# 音频和多媒体
+pygame>=2.5.0
+pygame-menu>=4.8.0
+
+# 系统相关
+plyer>=2.1.0
+pystray>=0.19.5
+
+# 数据处理
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# 日期时间
+python-dateutil>=2.8.2
+
+# 数据库
+sqlite3  # Python自带
+
+# 打包
+pyinstaller>=6.0.0
+
+# 其他工具
+psutil>=5.9.0
+colorthief>=0.2.1
+
+# 开发工具
+autopep8>=2.0.0
+pylint>=3.0.0
+pytest>=7.0.0

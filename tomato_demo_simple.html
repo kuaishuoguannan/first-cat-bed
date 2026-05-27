@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄滚落效果演示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #FFF9F0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            z-index: 10;
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(255, 140, 66, 0.2);
+        }
+        h1 {
+            color: #FF8C42;
+            margin-bottom: 15px;
+            font-size: 2.2rem;
+        }
+        .btn {
+            background: linear-gradient(135deg, #FF8C42, #FFB347);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(255, 140, 66, 0.3);
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(255, 140, 66, 0.4); }
+        .btn:active { transform: translateY(-1px); }
+        .tomato-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .tomato {
+            position: absolute;
+            transition: transform 0.1s;
+        }
+        .tomato-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF8C42, #FFB347);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.1), inset 3px 3px 6px rgba(255,255,255,0.3);
+        }
+        .tomato-face {
+            position: absolute;
+            width: 40%;
+            height: 40%;
+        }
+        .tomato-eyes {
+            display: flex;
+            gap: 15%;
+            justify-content: center;
+            margin-top: 25%;
+        }
+        .tomato-eye {
+            width: 15%;
+            height: 15%;
+            background: #5A5343;
+            border-radius: 50%;
+        }
+        .tomato-smile {
+            width: 40%;
+            height: 15%;
+            border-bottom: 3px solid #5A5343;
+            border-radius: 0 0 50% 50%;
+            margin: 15% auto 0;
+        }
+        .tomato-stem {
+            position: absolute;
+            top: -12%;
+            left: 37.5%;
+            width: 25%;
+            height: 25%;
+            background: #7B904B;
+            border-radius: 50% 50% 0 0;
+            transform: rotate(180deg);
+        }
+        .tomato-leaf {
+            position: absolute;
+            width: 20%;
+            height: 15%;
+            background: #9ABD6B;
+            border-radius: 50% 0 50% 50%;
+            top: -10%;
+            left: 20%;
+            transform: rotate(-45deg);
+        }
+        .tomato-leaf:nth-child(2) {
+            left: 60%;
+            border-radius: 0 50% 50% 50%;
+            transform: rotate(45deg);
+        }
+        .info {
+            margin-top: 20px;
+            color: #8A826E;
+            font-size: 0.95rem;
+        }
+        .counter {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FF8C42;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍅 番茄滚落效果演示</h1>
+        <p style="color: #5A5343; margin-bottom: 20px;">点击按钮开始番茄滚落动画，观察番茄如何随机滚落堆积</p>
+
+        <div>
+            <button class="btn" id="startBtn">开始番茄雨</button>
+            <button class="btn" id="stopBtn">停止</button>
+            <button class="btn" id="clearBtn">清除所有</button>
+        </div>
+
+        <div class="counter">番茄数量: <span id="count">0</span></div>
+        <div class="info">番茄会从顶部随机滚落，在底部堆积形成番茄堆<br>每个番茄有不同的大小、速度和旋转角度</div>
+    </div>
+
+    <div class="tomato-container" id="tomatoContainer"></div>
+
+    <script>
+        let tomatoes = [];
+        let tomatoId = 0;
+        let isRaining = false;
+        let rainInterval;
+
+        document.getElementById('startBtn').onclick = () => {
+            if (isRaining) return;
+            isRaining = true;
+            rainInterval = setInterval(() => {
+                for (let i = 0; i < 1 + Math.floor(Math.random() * 2); i++) {
+                    createTomato();
+                }
+                updateCount();
+            }, 500);
+        };
+
+        document.getElementById('stopBtn').onclick = () => {
+            isRaining = false;
+            clearInterval(rainInterval);
+        };
+
+        document.getElementById('clearBtn').onclick = () => {
+            tomatoes.forEach(t => t.element.remove());
+            tomatoes = [];
+            updateCount();
+        };
+
+        function createTomato() {
+            const tomato = document.createElement('div');
+            tomato.className = 'tomato';
+            const size = 30 + Math.random() * 50;
+            tomato.style.width = size + 'px';
+            tomato.style.height = size + 'px';
+
+            tomato.innerHTML = `
+                <div class="tomato-body">
+                    <div class="tomato-stem"></div>
+                    <div class="tomato-leaf"></div>
+                    <div class="tomato-leaf"></div>
+                    <div class="tomato-face">
+                        <div class="tomato-eyes">
+                            <div class="tomato-eye"></div>
+                            <div class="tomato-eye"></div>
+                        </div>
+                        <div class="tomato-smile"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('tomatoContainer').appendChild(tomato);
+
+            const tomatoData = {
+                id: tomatoId++,
+                element: tomato,
+                x: Math.random() * (window.innerWidth - size),
+                y: -size,
+                size: size,
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 8,
+                speedX: (Math.random() - 0.5) * 3,
+                speedY: 2 + Math.random() * 2,
+                gravity: 0.15,
+                bounce: 0.7,
+                friction: 0.95
+            };
+
+            tomatoes.push(tomatoData);
+        }
+
+        function updateTomatoes() {
+            const groundLevel = window.innerHeight - 50;
+
+            tomatoes.forEach(tomato => {
+                tomato.speedY += tomato.gravity;
+                tomato.x += tomato.speedX;
+                tomato.y += tomato.speedY;
+                tomato.rotation += tomato.rotationSpeed;
+
+                if (tomato.y + tomato.size > groundLevel) {
+                    tomato.y = groundLevel - tomato.size;
+                    tomato.speedY = -tomato.speedY * tomato.bounce;
+                    tomato.speedX *= tomato.friction;
+                    tomato.rotationSpeed *= 0.9;
+
+                    if (Math.abs(tomato.speedY) < 0.5) {
+                        tomato.speedY = 0;
+                        tomato.speedX = 0;
+                        tomato.rotationSpeed = 0;
+                    }
+                }
+
+                if (tomato.x < 0 || tomato.x + tomato.size > window.innerWidth) {
+                    tomato.speedX = -tomato.speedX * tomato.bounce;
+                    tomato.x = Math.max(0, Math.min(tomato.x, window.innerWidth - tomato.size));
+                }
+
+                tomato.element.style.transform = `translate(${tomato.x}px, ${tomato.y}px) rotate(${tomato.rotation}deg)`;
+            });
+
+            tomatoes = tomatoes.filter(t => t.speedY !== 0 || t.y < groundLevel - 10);
+        }
+
+        function updateCount() {
+            document.getElementById('count').textContent = tomatoes.length;
+        }
+
+        function animate() {
+            updateTomatoes();
+            requestAnimationFrame(animate);
+        }
+
+        // 创建一些初始番茄
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => createTomato(), i * 200);
+        }
+
+        setTimeout(updateCount, 1100);
+        animate();
+    </script>
+</body>
+</html>
